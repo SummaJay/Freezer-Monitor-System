@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50" data-theme="blue-yellow">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perera & Sons | Freezer Monitoring System (PFMS)</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- FontAwesome Icons CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Dexie.js CDN (Client-side IndexedDB Wrapper) -->
+  <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Custom CSS with Dynamic Theme Engine -->
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="min-h-full flex flex-col text-slate-800 antialiased" data-theme="blue-yellow">
+
+  <!-- ======================================================== -->
+  <!-- 1. STAFF AUTHENTICATION SCREEN (Shown when logged out)  -->
+  <!-- ======================================================== -->
+  <div id="staffAuthScreen" class="min-h-screen flex items-center justify-center p-4 dynamic-header-bg relative overflow-hidden">
+    <!-- Ambient glow decoration -->
+    <div class="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-white/10 blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-yellow-400/20 blur-3xl pointer-events-none"></div>
+
+    <div class="max-w-md w-full bg-white rounded-3xl shadow-2xl border border-white/30 overflow-hidden relative z-10 animate-in fade-in zoom-in-95">
+      
+      <!-- Card Brand Header -->
+      <div class="p-6 text-center dynamic-header-bg text-white border-b border-white/20">
+        <div class="w-14 h-14 mx-auto mb-2.5 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-inner">
+          <i class="fa-solid fa-temperature-arrow-down text-2xl text-yellow-300"></i>
+        </div>
+        <h1 class="text-xl font-black tracking-tight uppercase">Perera & Sons</h1>
+        <p class="text-xs text-blue-100 font-medium">Freezer Monitoring System • Staff Portal</p>
+      </div>
+
+      <!-- Auth Navigation Tabs -->
+      <div class="p-2 bg-slate-100 border-b border-slate-200 flex items-center justify-center gap-1 text-xs font-bold">
+        <button id="tabAuthLoginBtn" type="button" class="flex-1 py-2 rounded-xl transition-all bg-white text-slate-900 shadow-xs">
+          <i class="fa-solid fa-arrow-right-to-bracket mr-1"></i> Sign In
+        </button>
+        <button id="tabAuthRegBtn" type="button" class="flex-1 py-2 rounded-xl transition-all text-slate-500 hover:text-slate-900">
+          <i class="fa-solid fa-user-plus mr-1"></i> Create Account
+        </button>
+        <button id="tabAuthResetBtn" type="button" class="flex-1 py-2 rounded-xl transition-all text-slate-500 hover:text-slate-900">
+          <i class="fa-solid fa-key mr-1"></i> Reset Password
+        </button>
+      </div>
+
+      <div class="p-6">
+        
+        <!-- A. STAFF LOGIN FORM -->
+        <div id="staffLoginFormPanel">
+          <div id="staffLoginError" class="hidden p-3 mb-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold"></div>
+
+          <form id="staffLoginForm" class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Username / Staff Name</label>
+              <div class="relative">
+                <i class="fa-solid fa-user absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+                <input type="text" id="staffLoginUsername" required value="Gayani Shalika" placeholder="e.g. Gayani Shalika" class="w-full text-xs font-semibold pl-10 pr-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white outline-none transition-all">
+              </div>
+              <p class="text-[10px] text-slate-400 mt-1">Default Account: <code class="font-mono font-bold text-sky-700">Gayani Shalika</code></p>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Password</label>
+              <div class="relative">
+                <i class="fa-solid fa-lock absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+                <input type="password" id="staffLoginPassword" required value="Password@1234" placeholder="Enter password" class="w-full text-xs font-semibold pl-10 pr-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white outline-none transition-all">
+              </div>
+              <p class="text-[10px] text-slate-400 mt-1">Default Password: <code class="font-mono font-bold text-sky-700">Password@1234</code></p>
+            </div>
+
+            <button type="submit" class="w-full py-3 rounded-xl dynamic-btn-primary font-bold text-xs uppercase tracking-wider shadow-md transition-all active:scale-98">
+              <i class="fa-solid fa-clipboard-check mr-1.5"></i> Access Staff Portal
+            </button>
+          </form>
+        </div>
+
+        <!-- B. STAFF REGISTER FORM -->
+        <div id="staffRegisterFormPanel" class="hidden">
+          <div id="staffRegError" class="hidden p-3 mb-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold"></div>
+          <div id="staffRegSuccess" class="hidden p-3 mb-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold"></div>
+
+          <form id="staffRegisterForm" class="space-y-3 text-xs">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Username <span class="text-red-500">*</span></label>
+              <input type="text" id="regStaffUsername" required placeholder="Choose a username" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-semibold outline-none focus:bg-white">
+            </div>
+
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Full Name <span class="text-red-500">*</span></label>
+              <input type="text" id="regStaffFullName" required placeholder="e.g. Gayani Shalika" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-semibold outline-none focus:bg-white">
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Password <span class="text-red-500">*</span></label>
+                <input type="password" id="regStaffPassword" required placeholder="Min 4 chars" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none focus:bg-white">
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Confirm <span class="text-red-500">*</span></label>
+                <input type="password" id="regStaffConfirmPassword" required placeholder="Re-type" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none focus:bg-white">
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Contact Phone</label>
+              <input type="text" id="regStaffPhone" placeholder="+94 77 123 4567" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none focus:bg-white">
+            </div>
+
+            <button type="submit" class="w-full py-2.5 rounded-xl dynamic-btn-primary font-bold text-xs uppercase shadow-xs mt-2">
+              <i class="fa-solid fa-user-plus mr-1"></i> Register Account
+            </button>
+          </form>
+        </div>
+
+        <!-- C. STAFF RESET PASSWORD FORM -->
+        <div id="staffResetFormPanel" class="hidden">
+          <div id="staffResetError" class="hidden p-3 mb-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold"></div>
+          <div id="staffResetSuccess" class="hidden p-3 mb-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold"></div>
+
+          <form id="staffResetForm" class="space-y-3 text-xs">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Enter Your Username <span class="text-red-500">*</span></label>
+              <input type="text" id="resetStaffUsername" required value="Gayani Shalika" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-semibold outline-none focus:bg-white">
+            </div>
+
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">New Password <span class="text-red-500">*</span></label>
+              <input type="password" id="resetStaffNewPassword" required placeholder="Enter new password" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none focus:bg-white">
+            </div>
+
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Confirm New Password <span class="text-red-500">*</span></label>
+              <input type="password" id="resetStaffConfirmPassword" required placeholder="Confirm new password" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none focus:bg-white">
+            </div>
+
+            <button type="submit" class="w-full py-2.5 rounded-xl dynamic-btn-primary font-bold text-xs uppercase shadow-xs mt-2">
+              <i class="fa-solid fa-key mr-1"></i> Update & Reset Password
+            </button>
+          </form>
+        </div>
+
+        <!-- Link to Admin Portal -->
+        <div class="mt-6 pt-4 text-center border-t border-slate-100 flex items-center justify-between text-xs">
+          <span class="text-slate-400">Are you an Administrator?</span>
+          <a href="admin.html" class="font-bold text-sky-700 hover:text-sky-900 inline-flex items-center gap-1">
+            <i class="fa-solid fa-shield-halved text-amber-500"></i> Admin Portal &rarr;
+          </a>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- 2. AUTHENTICATED STAFF MAIN LAYOUT                       -->
+  <!-- ======================================================== -->
+  <div id="staffMainLayout" class="hidden min-h-screen flex flex-col">
+    
+    <!-- Top Announcement Stripe -->
+    <div class="dynamic-header-bg text-white text-xs px-4 py-1.5 flex flex-wrap justify-between items-center border-b border-white/20 shadow-xs">
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/20 text-yellow-300 font-semibold text-[10px] tracking-wide uppercase">
+          <i class="fa-solid fa-crown text-[9px]"></i> Since 1902
+        </span>
+        <span class="font-medium tracking-wide">Perera & Sons Bakeries • Food Safety & Cold Chain Quality Assurance</span>
+      </div>
+      <div class="flex items-center gap-4 text-white/80 text-[11px]">
+        <span class="flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span class="text-white font-medium">Dexie IndexedDB Online</span>
+        </span>
+        <span class="text-white/40">•</span>
+        <span id="liveDate" class="font-medium text-white"></span>
+        <span class="text-white/40">•</span>
+        <span id="liveClock" class="font-mono font-bold text-yellow-300 text-xs"></span>
+      </div>
+    </div>
+
+    <!-- Main Navigation Header -->
+    <header class="sticky top-0 z-30 glass-header border-b border-slate-200 shadow-xs">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-18">
+          
+          <!-- Logo & Title -->
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-2xl dynamic-btn-primary flex items-center justify-center text-white shadow-md">
+              <i class="fa-solid fa-temperature-arrow-down text-xl text-yellow-300"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-base font-black tracking-tight text-slate-900">PERERA & SONS</span>
+                <span class="px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider rounded dynamic-badge">
+                  PFMS v2.0
+                </span>
+              </div>
+              <p class="text-xs font-semibold text-slate-500">Bakery Freezer Monitoring (64 Units)</p>
+            </div>
+          </div>
+
+          <!-- Controls, Theme & User Profile -->
+          <div class="flex items-center gap-3">
+            
+            <!-- Dynamic Theme Selector -->
+            <div class="hidden md:flex items-center gap-1.5 bg-slate-100 px-2 py-1.5 rounded-xl border border-slate-200 text-xs">
+              <i class="fa-solid fa-palette text-slate-500 text-xs"></i>
+              <select id="staffThemeSelect" class="bg-transparent text-xs font-semibold text-slate-700 outline-none cursor-pointer">
+                <option value="blue-yellow">Light Blue & Light Yellow (Default)</option>
+                <option value="green-red">Light Green & Light Red</option>
+                <option value="purple-orange">Purple & Light Orange</option>
+              </select>
+            </div>
+
+            <!-- Primary Log Action Button -->
+            <button onclick="openLogModalForSlot('FRZ-01', 'SLOT-01', false)" class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-xl dynamic-btn-primary font-bold text-xs shadow-md transition-all transform active:scale-95">
+              <i class="fa-solid fa-plus-circle text-yellow-300 text-sm"></i>
+              <span>Log Temperature</span>
+            </button>
+
+            <!-- User Info & Logout -->
+            <div class="flex items-center gap-2 pl-2 border-l border-slate-200 text-xs">
+              <div class="text-right hidden sm:block">
+                <div class="font-bold text-slate-800 leading-tight" id="staffUserNameBadge">Gayani Shalika</div>
+                <div class="text-[10px] text-slate-400 font-semibold" id="staffUserRoleBadge">STAFF</div>
+              </div>
+
+              <div class="w-8 h-8 rounded-full dynamic-btn-primary flex items-center justify-center font-bold text-xs shadow-xs">
+                G
+              </div>
+
+              <button id="btnStaffLogout" class="p-1.5 text-slate-400 hover:text-red-600 rounded-lg transition-colors" title="Sign Out">
+                <i class="fa-solid fa-right-from-bracket"></i>
+              </button>
+            </div>
+
+            <!-- Admin Portal Link -->
+            <a href="admin.html" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs shadow-xs transition-all">
+              <i class="fa-solid fa-shield-halved text-amber-400"></i>
+              <span class="hidden md:inline">Admin</span>
+            </a>
+
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Body Content -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+      <!-- KPI Metric Stat Cards -->
+      <section class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
+        
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+          <div class="flex items-center justify-between text-slate-400 mb-2">
+            <span class="text-xs font-semibold uppercase tracking-wider">Total Units</span>
+            <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+              <i class="fa-solid fa-boxes-stacked text-xs"></i>
+            </div>
+          </div>
+          <div class="text-2xl font-black text-slate-800" id="statTotalFreezers">64</div>
+          <div class="text-[11px] text-slate-500 font-medium mt-1">4 Production Zones</div>
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs col-span-2 md:col-span-1">
+          <div class="flex items-center justify-between text-slate-400 mb-2">
+            <span class="text-xs font-semibold uppercase tracking-wider">Today's Checks</span>
+            <div class="w-7 h-7 rounded-lg dynamic-badge flex items-center justify-center">
+              <i class="fa-solid fa-clipboard-check text-xs"></i>
+            </div>
+          </div>
+          <div class="text-2xl font-black text-slate-800 font-mono" id="statCompletedChecks">0 / 256</div>
+          <div class="text-[11px] text-slate-500 font-medium mt-1">64 units × 4 daily slots</div>
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+          <div class="flex items-center justify-between text-slate-400 mb-2">
+            <span class="text-xs font-semibold uppercase tracking-wider">Daily Rate</span>
+            <div class="w-7 h-7 rounded-lg dynamic-badge flex items-center justify-center">
+              <i class="fa-solid fa-chart-pie text-xs"></i>
+            </div>
+          </div>
+          <div class="text-2xl font-black text-slate-800 font-mono" id="statCompletionRate">0%</div>
+          <div class="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
+            <div id="statProgressBar" class="h-1.5 rounded-full dynamic-btn-primary transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl border border-emerald-200 bg-emerald-50/20 shadow-xs">
+          <div class="flex items-center justify-between text-emerald-600 mb-2">
+            <span class="text-xs font-semibold uppercase tracking-wider">Normal</span>
+            <div class="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700">
+              <i class="fa-solid fa-circle-check text-xs"></i>
+            </div>
+          </div>
+          <div class="text-2xl font-black text-emerald-700 font-mono" id="statNormalCount">0</div>
+          <div class="text-[11px] text-emerald-600 font-medium mt-1">Safe food thresholds</div>
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl border border-amber-200 bg-amber-50/20 shadow-xs">
+          <div class="flex items-center justify-between text-amber-600 mb-2">
+            <span class="text-xs font-semibold uppercase tracking-wider">Warning</span>
+            <div class="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700">
+              <i class="fa-solid fa-triangle-exclamation text-xs"></i>
+            </div>
+          </div>
+          <div class="text-2xl font-black text-amber-700 font-mono" id="statWarningCount">0</div>
+          <div class="text-[11px] text-amber-600 font-medium mt-1">Slight deviations</div>
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl border border-red-200 bg-red-50/20 shadow-xs">
+          <div class="flex items-center justify-between text-red-600 mb-2">
+            <span class="text-xs font-semibold uppercase tracking-wider">Critical</span>
+            <div class="w-7 h-7 rounded-lg bg-red-100 flex items-center justify-center text-red-700">
+              <i class="fa-solid fa-fire-burner text-xs"></i>
+            </div>
+          </div>
+          <div class="text-2xl font-black text-red-700 font-mono" id="statCriticalCount">0</div>
+          <div class="text-[11px] text-red-600 font-medium mt-1">Action needed!</div>
+        </div>
+
+      </section>
+
+      <!-- 64-Freezer Daily Monitoring Matrix -->
+      <section class="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
+        
+        <div class="p-5 border-b border-slate-100 bg-slate-50/60 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-lg font-black text-slate-900 tracking-tight">64-Freezer Monitoring Matrix</h2>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold dynamic-badge">4 Daily Checks</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">Click any pending cell or "+ Log" button to record temperature, or add notes for missed checks.</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2.5">
+            <div class="flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 shadow-xs">
+              <i class="fa-regular fa-calendar text-slate-400 text-xs"></i>
+              <input type="date" id="matrixDatePicker" class="text-xs font-semibold text-slate-700 bg-transparent outline-none cursor-pointer">
+              <button id="btnTodayMatrix" class="px-2 py-0.5 text-[11px] font-bold rounded-md bg-slate-100 text-slate-700 hover:bg-slate-200">
+                Today
+              </button>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 shadow-xs">
+              <select id="matrixStatusFilter" class="text-xs font-semibold text-slate-700 bg-transparent outline-none cursor-pointer">
+                <option value="all">All Check Statuses</option>
+                <option value="incomplete">Incomplete Units (< 4 checks)</option>
+                <option value="completed">Completed Units (4/4)</option>
+                <option value="alerts">Units with Alerts</option>
+              </select>
+            </div>
+
+            <div class="relative">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+              <input type="text" id="matrixSearchInput" placeholder="Search #, name, location..." class="pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs text-slate-700 placeholder-slate-400 outline-none w-48 sm:w-60">
+            </div>
+          </div>
+        </div>
+
+        <!-- Zone Filter Pills -->
+        <div class="px-5 py-3 border-b border-slate-100 bg-white flex flex-wrap items-center gap-1.5 text-xs overflow-x-auto">
+          <span class="text-slate-400 font-bold uppercase tracking-wider text-[10px] mr-2">Production Zone:</span>
+          <button data-zone-filter="all" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all dynamic-btn-primary shadow-xs">
+            All Freezers (64)
+          </button>
+          <button data-zone-filter="Zone A" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all bg-white text-slate-600 hover:bg-slate-50 border border-slate-200">
+            Zone A: Pastry & Bakehouse (#01 - #16)
+          </button>
+          <button data-zone-filter="Zone B" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all bg-white text-slate-600 hover:bg-slate-50 border border-slate-200">
+            Zone B: Raw Ingredients (#17 - #32)
+          </button>
+          <button data-zone-filter="Zone C" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all bg-white text-slate-600 hover:bg-slate-50 border border-slate-200">
+            Zone C: Finished Goods (#33 - #48)
+          </button>
+          <button data-zone-filter="Zone D" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all bg-white text-slate-600 hover:bg-slate-50 border border-slate-200">
+            Zone D: Coldrooms & Logistics (#49 - #64)
+          </button>
+        </div>
+
+        <!-- Matrix Table (With Notes / Missed Reason column right next to Analytics) -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold uppercase text-slate-500 tracking-wider">
+                <th class="px-4 py-3">Freezer Unit & Bakery Location</th>
+                <th class="px-3 py-3 text-center">Slot 1: Morning<br><span class="text-[9px] font-normal text-slate-400">(06:00 - 08:00)</span></th>
+                <th class="px-3 py-3 text-center">Slot 2: Mid-Day<br><span class="text-[9px] font-normal text-slate-400">(11:00 - 13:00)</span></th>
+                <th class="px-3 py-3 text-center">Slot 3: Evening<br><span class="text-[9px] font-normal text-slate-400">(16:00 - 18:00)</span></th>
+                <th class="px-3 py-3 text-center">Slot 4: Night<br><span class="text-[9px] font-normal text-slate-400">(21:00 - 23:00)</span></th>
+                <th class="px-4 py-3 text-center">Daily Status</th>
+                <th class="px-3 py-3 text-center">Analytics</th>
+                <th class="px-4 py-3 text-left min-w-[210px]">Notes / Missed Reason</th>
+              </tr>
+            </thead>
+            <tbody id="matrixTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
+          </table>
+        </div>
+
+      </section>
+
+      <!-- Analytics & Temperature Stability Chart -->
+      <section id="analyticsSection" class="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-lg dynamic-badge flex items-center justify-center text-sm font-bold">
+                <i class="fa-solid fa-chart-line"></i>
+              </div>
+              <h3 class="text-base font-black text-slate-900">Historical Temperature Trend Graph</h3>
+            </div>
+            <p id="chartFreezerTitle" class="text-xs text-slate-500 mt-0.5">Showing temperature stability against safety thresholds.</p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <label for="chartFreezerSelect" class="text-xs font-bold text-slate-500">Select Unit:</label>
+            <select id="chartFreezerSelect" class="text-xs font-semibold text-slate-800 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none"></select>
+          </div>
+        </div>
+
+        <div class="h-64 sm:h-72 w-full">
+          <canvas id="tempTrendChart"></canvas>
+        </div>
+      </section>
+
+      <!-- Full Monthly Logs & History Table -->
+      <section class="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
+        
+        <div class="p-5 border-b border-slate-100 bg-slate-50/60 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h3 class="text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
+              <i class="fa-solid fa-clock-rotate-left text-sky-700"></i>
+              Full Temperature Audit Log History
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">Filter across the entire month by checking officer, time slot, unit, or safety compliance.</p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button id="btnExportCSV" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-xs transition-colors">
+              <i class="fa-solid fa-file-csv text-sm"></i>
+              <span>Export CSV</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="p-4 bg-white border-b border-slate-100 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 text-xs">
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Select Month</label>
+            <input type="month" id="filterMonth" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 font-semibold text-slate-700 outline-none">
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Specific Date</label>
+            <input type="date" id="filterDate" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 font-semibold text-slate-700 outline-none">
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Freezer Unit</label>
+            <select id="filterFreezer" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 font-semibold text-slate-700 outline-none"></select>
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Checking Officer</label>
+            <select id="filterStaff" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 font-semibold text-slate-700 outline-none"></select>
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Time Slot</label>
+            <select id="filterSlot" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 font-semibold text-slate-700 outline-none"></select>
+          </div>
+
+          <div class="flex items-end gap-1.5">
+            <div class="flex-1">
+              <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Compliance</label>
+              <select id="filterStatus" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 font-semibold text-slate-700 outline-none">
+                <option value="">All Statuses</option>
+                <option value="normal">Normal (Safe)</option>
+                <option value="warning">Warning</option>
+                <option value="critical">Critical</option>
+              </select>
+            </div>
+            <button id="btnResetFilters" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs" title="Reset Filters">
+              <i class="fa-solid fa-arrow-rotate-left"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- History Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-50/80 border-b border-slate-200 text-[10px] font-bold uppercase text-slate-500 tracking-wider">
+                <th class="px-4 py-3">Date & Timestamp</th>
+                <th class="px-4 py-3">Freezer & Location</th>
+                <th class="px-4 py-3">Time Slot</th>
+                <th class="px-4 py-3">Temperature</th>
+                <th class="px-4 py-3">Checking Officer</th>
+                <th class="px-4 py-3">Notes & Observations</th>
+                <th class="px-4 py-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+
+        <div class="p-4 bg-slate-50/60 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+          <div id="historyPaginationInfo" class="text-slate-500 font-medium">Showing 0 records</div>
+          <div id="historyPaginationControls" class="flex items-center gap-2"></div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-6 mt-12 text-center text-xs text-slate-400">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-1">
+        <p class="font-bold text-slate-600">Perera & Sons Confectioners (Pvt) Ltd • Quality Assurance & Food Hygiene Department</p>
+        <p>PFMS Freezer Monitoring System • Powered by Dexie.js Client-side IndexedDB & Tailwind CSS</p>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- 3. QUICK LOG TEMPERATURE MODAL                           -->
+  <!-- ======================================================== -->
+  <div id="quickLogModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-100 overflow-hidden transform transition-all animate-in fade-in zoom-in-95">
+      
+      <div class="px-6 py-4 dynamic-header-bg text-white flex items-center justify-between">
+        <h3 id="modalLogTitle" class="text-sm font-bold flex items-center">
+          <i class="fa-solid fa-snowflake text-yellow-300 mr-2"></i> Record Temperature Check
+        </h3>
+        <button onclick="closeLogModal()" class="text-white/70 hover:text-white p-1 rounded-lg transition-colors">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="quickLogForm" class="p-6 space-y-4">
+        
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">
+            1. Select Freezer Unit <span class="text-red-500">*</span>
+          </label>
+          <select id="logFreezerSelect" required class="w-full text-xs font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 outline-none focus:bg-white transition-all"></select>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">
+              2. Checking Officer <span class="text-red-500">*</span>
+            </label>
+            <select id="logStaffSelect" required class="w-full text-xs font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 outline-none focus:bg-white transition-all"></select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">
+              3. Time Slot <span class="text-red-500">*</span>
+            </label>
+            <select id="logSlotSelect" required class="w-full text-xs font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 outline-none focus:bg-white transition-all"></select>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="text-xs font-bold text-slate-700">
+              4. Recorded Temperature (°C) <span class="text-red-500">*</span>
+            </label>
+            <span class="text-[11px] text-slate-400 font-mono">Use minus (-) for below zero</span>
+          </div>
+
+          <div class="relative flex items-center">
+            <input type="number" step="0.1" id="logTemperatureInput" value="-19.5" required class="w-full text-center text-3xl font-black font-mono-numbers py-3 rounded-2xl bg-slate-50 border-2 border-slate-200 focus:bg-white outline-none transition-all">
+            <span class="absolute right-4 text-slate-400 font-bold text-lg">°C</span>
+          </div>
+
+          <!-- Stepper Buttons -->
+          <div class="flex items-center justify-center gap-1.5 mt-2">
+            <button type="button" data-temp-adjust="-5" class="px-2.5 py-1 text-xs font-mono font-bold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700">-5°</button>
+            <button type="button" data-temp-adjust="-1" class="px-2.5 py-1 text-xs font-mono font-bold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700">-1°</button>
+            <button type="button" data-temp-adjust="-0.5" class="px-2.5 py-1 text-xs font-mono font-bold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700">-0.5°</button>
+            <span class="text-slate-300 font-mono text-xs">|</span>
+            <button type="button" data-temp-adjust="0.5" class="px-2.5 py-1 text-xs font-mono font-bold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700">+0.5°</button>
+            <button type="button" data-temp-adjust="1" class="px-2.5 py-1 text-xs font-mono font-bold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700">+1°</button>
+            <button type="button" data-temp-adjust="5" class="px-2.5 py-1 text-xs font-mono font-bold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700">+5°</button>
+          </div>
+
+          <!-- Quick Presets -->
+          <div class="flex items-center justify-center gap-2 mt-2">
+            <span class="text-[10px] text-slate-400 uppercase font-bold">Presets:</span>
+            <button type="button" data-temp-preset="-22.0" class="text-[11px] font-mono px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-semibold">-22°C</button>
+            <button type="button" data-temp-preset="-20.0" class="text-[11px] font-mono px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-semibold">-20°C</button>
+            <button type="button" data-temp-preset="-18.0" class="text-[11px] font-mono px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-semibold">-18°C</button>
+            <button type="button" data-temp-preset="2.0" class="text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-semibold">+2°C</button>
+            <button type="button" data-temp-preset="4.0" class="text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-semibold">+4°C</button>
+          </div>
+        </div>
+
+        <div id="tempStatusPreview" class="p-3 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-800 flex items-center gap-3">
+          <div id="tempStatusBadge" class="px-2 py-0.5 rounded text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+            NORMAL
+          </div>
+          <p id="tempStatusDesc" class="text-xs font-medium">
+            Within safe bakery compliance threshold.
+          </p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">
+            5. Notes / Observations (Optional)
+          </label>
+          <input type="text" id="logNotesInput" placeholder="e.g. Routine Check OK, Defrost cycle..." class="w-full text-xs text-slate-800 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none">
+          
+          <div class="flex flex-wrap gap-1.5 mt-2">
+            <button type="button" data-note-preset="Routine Check OK" class="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-semibold">Routine Check OK</button>
+            <button type="button" data-note-preset="Defrost Cycle Active" class="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-semibold">Defrost Cycle</button>
+            <button type="button" data-note-preset="Door Gasket Inspected" class="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-semibold">Gasket Checked</button>
+            <button type="button" data-note-preset="Compressor Normal" class="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-semibold">Compressor Normal</button>
+          </div>
+        </div>
+
+        <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
+          <button type="button" onclick="closeLogModal()" class="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50">
+            Cancel
+          </button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl dynamic-btn-primary font-bold text-xs shadow-md transition-all">
+            <i class="fa-solid fa-check mr-1.5"></i> Save & Log Check
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- 4. DAILY NOTE / REASON FOR MISSED CHECK MODAL (NEW)      -->
+  <!-- ======================================================== -->
+  <div id="dailyNoteModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden transform transition-all animate-in fade-in zoom-in-95">
+      
+      <div class="px-6 py-4 dynamic-header-bg text-white flex items-center justify-between">
+        <h3 id="noteModalTitle" class="text-sm font-bold flex items-center gap-2">
+          <i class="fa-solid fa-note-sticky text-yellow-300"></i> Daily Note / Reason for Missed Check
+        </h3>
+        <button onclick="closeDailyNoteModal()" class="text-white/70 hover:text-white p-1 rounded-lg transition-colors">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="dailyNoteForm" class="p-6 space-y-4 text-xs">
+        <input type="hidden" id="noteFreezerId">
+        <input type="hidden" id="noteDate">
+
+        <!-- Target Freezer Info Banner -->
+        <div id="noteFreezerInfoBanner" class="p-3 rounded-2xl bg-slate-50 border border-slate-200 flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl dynamic-btn-primary flex items-center justify-center text-white font-bold text-xs shrink-0">
+            <i class="fa-solid fa-snowflake"></i>
+          </div>
+          <div class="min-w-0 flex-1">
+            <h4 id="noteFreezerName" class="font-bold text-slate-800 text-xs truncate">Freezer #01</h4>
+            <p id="noteFreezerLocation" class="text-[11px] text-slate-500 truncate">Pastry Prep Zone</p>
+            <span id="noteDateDisplay" class="text-[10px] text-slate-400 font-mono">Date: 2026-10-26</span>
+          </div>
+        </div>
+
+        <!-- Quick Preset Reasons for Bakery Operations -->
+        <div>
+          <label class="block font-bold text-slate-700 mb-1.5 uppercase tracking-wider text-[10px]">
+            Quick Preset Reasons (Click to insert)
+          </label>
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" data-reason-preset="Routine Defrost Cycle Active" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-semibold transition-all">Defrost Cycle</button>
+            <button type="button" data-reason-preset="Compressor / Technician Servicing in Progress" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-semibold transition-all">Compressor Servicing</button>
+            <button type="button" data-reason-preset="Bakery Kitchen Section Closed Early" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-semibold transition-all">Section Closed Early</button>
+            <button type="button" data-reason-preset="Power Line / Generator Switch Maintenance" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-semibold transition-all">Power Line Shift</button>
+            <button type="button" data-reason-preset="Deep Cleaning & Sanitation Schedule" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-semibold transition-all">Cleaned & Sanitized</button>
+            <button type="button" data-reason-preset="Unit Empty / Temporary Operational Standby" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-semibold transition-all">Empty / Standby</button>
+            <button type="button" data-reason-preset="Staff Reassigned to High-Demand Bakery Line" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-semibold transition-all">Staff Reassigned</button>
+          </div>
+        </div>
+
+        <!-- Detailed Textarea -->
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">
+            Detailed Reason / Operational Notes <span class="text-red-500">*</span>
+          </label>
+          <textarea id="noteTextInput" rows="3" required placeholder="State reason why this unit was not monitored or add operational observations..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:bg-white text-xs text-slate-800 transition-all"></textarea>
+        </div>
+
+        <!-- Logged By Author -->
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Logged By</label>
+          <input type="text" id="noteAuthorInput" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-slate-600 font-semibold">
+        </div>
+
+        <!-- Actions -->
+        <div class="pt-3 flex items-center justify-between border-t border-slate-100">
+          <button type="button" id="btnDeleteDailyNote" class="text-red-600 hover:text-red-800 font-bold text-xs hidden">
+            <i class="fa-solid fa-trash mr-1"></i> Delete Note
+          </button>
+          <div class="flex items-center gap-2 ml-auto">
+            <button type="button" onclick="closeDailyNoteModal()" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50">Cancel</button>
+            <button type="submit" class="px-5 py-2 rounded-xl dynamic-btn-primary font-bold shadow-xs">Save Note</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
+
+  <!-- Scripts -->
+  <script src="assets/js/db.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,230 @@
+/* Perera & Sons Freezer Monitoring System (PFMS) - Custom Styles & Dynamic Themes */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* ======================================================== */
+/* THEME 1: LIGHT BLUE & LIGHT YELLOW (DEFAULT)             */
+/* ======================================================== */
+:root, [data-theme="blue-yellow"] {
+  --theme-primary: #0284c7;             /* Sky / Ocean Blue */
+  --theme-primary-hover: #0369a1;
+  --theme-primary-dark: #0c4a6e;
+  --theme-primary-light: #e0f2fe;        /* Very light blue */
+  --theme-primary-border: #bae6fd;
+  
+  --theme-secondary: #eab308;           /* Light Yellow / Warm Amber */
+  --theme-secondary-hover: #ca8a04;
+  --theme-secondary-light: #fef9c3;      /* Soft Light Yellow */
+  --theme-secondary-border: #fef08a;
+
+  --theme-header-gradient: linear-gradient(135deg, #0c4a6e 0%, #0369a1 40%, #0284c7 100%);
+  --theme-accent-badge: #e0f2fe;
+  --theme-accent-text: #0369a1;
+  --theme-highlight: #fef08a;
+  --theme-page-bg: #f8fafc;
+}
+
+/* ======================================================== */
+/* THEME 2: LIGHT GREEN & LIGHT RED                         */
+/* ======================================================== */
+[data-theme="green-red"] {
+  --theme-primary: #059669;             /* Emerald / Mint Green */
+  --theme-primary-hover: #047857;
+  --theme-primary-dark: #064e3b;
+  --theme-primary-light: #d1fae5;        /* Very light green */
+  --theme-primary-border: #a7f3d0;
+
+  --theme-secondary: #f43f5e;           /* Soft Light Red / Rose */
+  --theme-secondary-hover: #e11d48;
+  --theme-secondary-light: #ffe4e6;      /* Soft Light Red */
+  --theme-secondary-border: #fecdd3;
+
+  --theme-header-gradient: linear-gradient(135deg, #064e3b 0%, #047857 40%, #059669 100%);
+  --theme-accent-badge: #d1fae5;
+  --theme-accent-text: #065f46;
+  --theme-highlight: #ffe4e6;
+  --theme-page-bg: #f8fafc;
+}
+
+/* ======================================================== */
+/* THEME 3: PURPLE & LIGHT ORANGE                           */
+/* ======================================================== */
+[data-theme="purple-orange"] {
+  --theme-primary: #7c3aed;             /* Royal Violet / Purple */
+  --theme-primary-hover: #6d28d9;
+  --theme-primary-dark: #4c1d95;
+  --theme-primary-light: #ede9fe;        /* Very light purple */
+  --theme-primary-border: #ddd6fe;
+
+  --theme-secondary: #f97316;           /* Warm Light Orange / Peach */
+  --theme-secondary-hover: #ea580c;
+  --theme-secondary-light: #ffedd5;      /* Soft Light Orange */
+  --theme-secondary-border: #fed7aa;
+
+  --theme-header-gradient: linear-gradient(135deg, #4c1d95 0%, #6d28d9 40%, #7c3aed 100%);
+  --theme-accent-badge: #ede9fe;
+  --theme-accent-text: #5b21b6;
+  --theme-highlight: #ffedd5;
+  --theme-page-bg: #f8fafc;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--theme-page-bg);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.font-mono-numbers {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Theme Dynamic Header */
+.dynamic-header-bg {
+  background: var(--theme-header-gradient) !important;
+}
+
+/* Theme Accent Card Highlight */
+.dynamic-border {
+  border-color: var(--theme-primary-border) !important;
+}
+
+.dynamic-badge {
+  background-color: var(--theme-primary-light) !important;
+  color: var(--theme-primary) !important;
+  border: 1px solid var(--theme-primary-border) !important;
+}
+
+.dynamic-btn-primary {
+  background-color: var(--theme-primary) !important;
+  color: #ffffff !important;
+  transition: all 0.2s ease;
+}
+.dynamic-btn-primary:hover {
+  background-color: var(--theme-primary-hover) !important;
+}
+
+.dynamic-btn-secondary {
+  background-color: var(--theme-secondary-light) !important;
+  color: var(--theme-secondary-hover) !important;
+  border: 1px solid var(--theme-secondary-border) !important;
+  transition: all 0.2s ease;
+}
+.dynamic-btn-secondary:hover {
+  background-color: var(--theme-secondary) !important;
+  color: #ffffff !important;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Glassmorphism */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.glass-header {
+  background: rgba(255, 255, 255, 0.90);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* Temperature status pulses */
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.02); }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 3s infinite ease-in-out;
+}
+
+/* Freezer Card Grid Animations */
+.freezer-card {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.freezer-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+}
+
+/* Status Badges */
+.badge-normal {
+  background-color: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.badge-warning {
+  background-color: #fef9c3;
+  color: #a16207;
+  border: 1px solid #fef08a;
+}
+
+.badge-critical {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.badge-pending {
+  background-color: #f1f5f9;
+  color: #64748b;
+  border: 1px dashed #cbd5e1;
+}
+
+/* Print Stylesheet */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 11pt !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  header, nav, footer, .btn-action, #sidebar, .modal {
+    display: none !important;
+  }
+
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  th, td {
+    padding: 6px 8px !important;
+    border: 1px solid #cbd5e1 !important;
+    font-size: 9pt !important;
+  }
+
+  th {
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
+  }
+}
